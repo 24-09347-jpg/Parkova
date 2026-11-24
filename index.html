@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartPark Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="script.js"></script>
+</head>
+<body>
+  <div class="app">
+
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">P</div>
+        <div>
+          <h1>SmartPark</h1>
+          <small>IoT Parking Management</small>
+        </div>
+      </div>
+
+      <nav id="mainNav">
+        <button class="nav-btn active" data-page="dashboard">⌂ Dashboard</button>
+        <button class="nav-btn" data-page="slots">▦ Parking Slots</button>
+        <button class="nav-btn" data-page="reservations">▣ Reservations</button>
+        <button class="nav-btn" data-page="reports">▤ Reports</button>
+        <button class="nav-btn" data-page="connection">⚙ Connection</button>
+      </nav>
+
+      <div class="connection-card">
+        <span id="connectionDot" class="connection-dot"></span>
+        <strong id="connectionStatus">Not connected</strong>
+        <p id="connectionMessage">Waiting for Firebase data...</p>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">SMART PARKING SYSTEM</p>
+          <h2 id="pageTitle">Dashboard Overview</h2>
+          <p id="pageDescription">Live parking status from your ESP32 sensors.</p>
+        </div>
+
+        <div class="live-badge">
+          <span id="liveDot"></span>
+          <span id="lastUpdate">No data received</span>
+        </div>
+      </header>
+
+      <!-- DASHBOARD -->
+      <section id="page-dashboard" class="page active">
+
+        <div class="metrics">
+          <article class="metric green">
+            <p>Available Cars</p>
+            <h3 id="carsAvailable">—</h3>
+            <small id="carsAvailableDetail">Waiting for sensor data</small>
+          </article>
+
+          <article class="metric red">
+            <p>Occupied Cars</p>
+            <h3 id="carsOccupied">—</h3>
+            <small id="carsOccupiedDetail">Waiting for sensor data</small>
+          </article>
+
+          <article class="metric blue">
+            <p>Available Motorcycles</p>
+            <h3 id="motorcyclesAvailable">—</h3>
+            <small id="motorcyclesDetail">Waiting for sensor data</small>
+          </article>
+
+          <article class="metric teal">
+            <p>Available EV Slots</p>
+            <h3 id="evAvailable">—</h3>
+            <small id="evDetail">Waiting for sensor data</small>
+          </article>
+
+          <article class="metric purple">
+            <p>Available PWD Slots</p>
+            <h3 id="pwdAvailable">—</h3>
+            <small id="pwdDetail">Waiting for sensor data</small>
+          </article>
+        </div>
+
+        <div class="dashboard-grid">
+
+          <!-- PARKING MAP -->
+          <article class="panel parking-panel">
+            <div class="panel-header">
+              <div>
+                <h3>Parking Map</h3>
+                <p>Live status reported by ESP32 sensors</p>
+              </div>
+
+              <div class="legend">
+                <span><i class="legend-dot available-dot"></i>Available</span>
+                <span><i class="legend-dot occupied-dot"></i>Occupied</span>
+                <span><i class="legend-dot unknown-dot"></i>No data</span>
+              </div>
+            </div>
+
+            <div class="parking-lot blueprint-map">
+              <div class="parking-layout">
+
+                <div class="map-section motorcycle-section">
+                  <h4>MOTORCYCLE</h4>
+                  <div id="motorcycleSlots" class="motorcycle-grid">
+                    <p class="waiting">Waiting for sensor data...</p>
+                  </div>
+                </div>
+
+                <div class="map-section car-section">
+                  <h4>CAR PARKING</h4>
+                  <div id="carLeft" class="car-bank">
+                    <p class="waiting">Waiting for sensor data...</p>
+                  </div>
+                </div>
+
+                <div class="garden-section">
+                  <h4>GARDEN</h4>
+                  <div class="garden-divider">
+                    <span>🌳</span>
+                    <span>🌳</span>
+                    <span>🌳</span>
+                    <span>🌳</span>
+                  </div>
+                </div>
+
+                <div class="map-section car-section">
+                  <h4>CAR PARKING</h4>
+                  <div id="carRight" class="car-bank">
+                    <p class="waiting">Waiting for sensor data...</p>
+                  </div>
+                </div>
+
+                <div class="map-section special-section">
+
+                  <div class="special-parking">
+                    <h4>EV PARKING</h4>
+                    <div id="evSlots" class="special-slots">
+                      <p class="waiting">Waiting for sensor data...</p>
+                    </div>
+                  </div>
+
+                  <div class="special-parking">
+                    <h4>PWD PARKING</h4>
+                    <div id="pwdSlots" class="special-slots">
+                      <p class="waiting">Waiting for sensor data...</p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="map-entrance-exit">
+                <div class="entrance-label">
+                  <span>↓</span>
+                  <strong>ENTRANCE</strong>
+                </div>
+
+                <div class="road-divider"></div>
+
+                <div class="exit-label">
+                  <span>↑</span>
+                  <strong>EXIT</strong>
+                </div>
+              </div>
+
+              <div class="lot-footer">
+                <span>Green = Available</span>
+                <span>Red = Occupied</span>
+                <span>Gray = No sensor data</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- RECENT ACTIVITY -->
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>Recent Activity</h3>
+                <p>Parking status changes received from Firebase</p>
+              </div>
+            </div>
+
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Slot</th>
+                    <th>Status</th>
+                    <th>Type</th>
+                  </tr>
+                </thead>
+
+                <tbody id="activityBody">
+                  <tr>
+                    <td colspan="4" class="empty-cell">
+                      No sensor activity received.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- PARKING SLOTS -->
+      <section id="page-slots" class="page">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>All Parking Slots</h3>
+              <p>Live status of the five connected parking sensors.</p>
+            </div>
+          </div>
+
+          <div id="allSlots" class="all-slots">
+            <p class="waiting">Waiting for sensor data...</p>
+          </div>
+        </article>
+      </section>
+
+      <!-- RESERVATIONS -->
+      <section id="page-reservations" class="page">
+        <div class="reservation-grid">
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>Make a Reservation</h3>
+                <p>Choose a parking slot and reserve it automatically.</p>
+              </div>
+            </div>
+
+            <form id="reservationForm" class="reservation-form">
+              <label for="customerName">Customer name</label>
+              <input id="customerName" type="text" maxlength="80" required placeholder="Enter full name">
+
+              <label for="customerContact">Contact number</label>
+              <input id="customerContact" type="tel" maxlength="25" required placeholder="Enter contact number">
+
+              <label for="reservationVehicle">Vehicle type</label>
+              <select id="reservationVehicle" required>
+                <option value="">Select vehicle type</option>
+                <option value="Car">Car</option>
+                <option value="Motorcycle">Motorcycle</option>
+                <option value="EV">Electric Vehicle (EV)</option>
+                <option value="PWD">PWD</option>
+              </select>
+
+              <label for="reservationSlot">Preferred parking slot</label>
+              <select id="reservationSlot" required>
+                <option value="">Select a vehicle type first</option>
+              </select>
+              <small id="slotAvailabilityHint" class="form-hint">Select a vehicle type to view matching slots.</small>
+
+              <label for="reservationDateTime">Reservation date and time</label>
+              <input id="reservationDateTime" type="datetime-local" step="3600" required>
+
+              <p class="form-hint">Each reservation is for a one-hour time block. Confirmation is automatic when the selected slot and time are available.</p>
+              <button id="submitReservation" class="primary-btn" type="submit">Confirm Reservation</button>
+              <p id="reservationMessage" class="form-message" role="status"></p>
+            </form>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>Reservation Information</h3>
+                <p>Booking status and parking slot guide.</p>
+              </div>
+            </div>
+            <div class="reservation-info">
+              <div class="reservation-info-item"><strong>Automatic confirmation</strong><span>No admin approval required.</span></div>
+              <div class="reservation-info-item"><strong>Customer-selected slot</strong><span>Choose from slots matching your vehicle type.</span></div>
+              <div class="reservation-info-item"><strong>Advance and same-day booking</strong><span>Select a future date or an available time today.</span></div>
+              <div class="reservation-info-item"><strong>Live parking status</strong><span>Current occupancy is still monitored by ESP32 sensors.</span></div>
+            </div>
+          </article>
+        </div>
+
+        <article class="panel reservation-records-panel">
+          <div class="panel-header">
+            <div>
+              <h3>Reservation Records</h3>
+              <p>Bookings saved in Firebase Realtime Database.</p>
+            </div>
+            <span id="reservationCount" class="reservation-count">0 reservations</span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Contact</th>
+                  <th>Vehicle</th>
+                  <th>Slot</th>
+                  <th>Date &amp; Time</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="reservationBody">
+                <tr><td colspan="6" class="empty-cell">No reservations yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <!-- REPORTS -->
+      <section id="page-reports" class="page">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>Live Parking Report</h3>
+              <p>Report generated from Firebase sensor records.</p>
+            </div>
+
+            <button id="downloadReport" class="primary-btn" disabled>
+              Download CSV
+            </button>
+          </div>
+
+          <div class="metrics report-metrics">
+            <article class="metric blue">
+              <p>Total Slots</p>
+              <h3 id="totalSlots">—</h3>
+            </article>
+
+            <article class="metric green">
+              <p>Available</p>
+              <h3 id="totalAvailable">—</h3>
+            </article>
+
+            <article class="metric red">
+              <p>Occupied</p>
+              <h3 id="totalOccupied">—</h3>
+            </article>
+
+            <article class="metric teal">
+              <p>Occupancy Rate</p>
+              <h3 id="occupancyRate">—</h3>
+            </article>
+          </div>
+
+          <p class="report-note" id="reportNote">
+            Waiting for actual sensor records.
+          </p>
+        </article>
+      </section>
+
+      <!-- CONNECTION -->
+      <section id="page-connection" class="page">
+        <article class="panel setup-panel">
+
+          <div class="panel-header">
+            <div>
+              <h3>Firebase Connection</h3>
+              <p>Connection information for your ESP32 system.</p>
+            </div>
+          </div>
+
+          <div class="setup-content">
+
+            <div class="connection-info">
+              <strong id="firebaseStatus">Firebase not connected</strong>
+              <p id="firebaseDetails">
+                Waiting for Firebase connection.
+              </p>
+            </div>
+
+            <h3>Required Firebase Data Structure</h3>
+
+            <pre><code>{
+  "parking": {
+    "slots": {
+      "M1": {
+        "type": "Motorcycle",
+        "occupied": false,
+        "updatedAt": 0
+      },
+      "C1": {
+        "type": "Car",
+        "occupied": false,
+        "updatedAt": 0
+      },
+      "C2": {
+        "type": "Car",
+        "occupied": false,
+        "updatedAt": 0
+      },
+      "E1": {
+        "type": "EV",
+        "occupied": false,
+        "updatedAt": 0
+      },
+      "P1": {
+        "type": "PWD",
+        "occupied": false,
+        "updatedAt": 0
+      }
+    }
+  }
+}</code></pre>
+
+            <p class="note">
+              The values above are examples only. Your ESP32 must send the
+              actual sensor readings to this Firebase location.
+            </p>
+
+            <p class="note">
+              Database path:
+              <strong>parking/slots</strong>
+            </p>
+
+          </div>
+        </article>
+      </section>
+
+      <footer>
+        <span>SmartPark IoT Parking Management System</span>
+        <span>Live sensor data only</span>
+      </footer>
+
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status"></div>
+</body>
+</html>
